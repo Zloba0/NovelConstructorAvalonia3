@@ -24,7 +24,11 @@ namespace NovelConstructorAvalonia3
         {
             public ConstructorTextBox()
             {
+            }
 
+            public void SetPlainText(string text)
+            {
+                FlowDocument.Selection.Text = text;
             }
         }
         public class ConstructorControlContainer : ContentControl
