@@ -1,0 +1,95 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        d:DesignWidth="800"
+        d:DesignHeight="450"
+        x:Class="NovelConstructorAvalonia3.MainWindow"
+        Title="NovelConstructorAvalonia3">
+
+    <Grid RowDefinitions="95,*"
+          ColumnDefinitions="170,*,125">
+
+        <!-- Верхняя панель -->
+        <Border x:Name="panel2"
+                Grid.Row="0"
+                Grid.ColumnSpan="3"
+                Background="#99B4D1">
+
+            <Grid RowDefinitions="*,25">
+
+                <!-- Верхняя часть -->
+                <Grid Grid.Row="0">
+
+                    <Image x:Name="iconImage"
+                           Source="/Assets/icon.png"
+                           Width="52"
+                           Height="50"
+                           HorizontalAlignment="Center"
+                           Margin="0,3,138,0"/>
+
+                    <Image x:Name="textFileImage"
+                           Source="/Assets/text_icon.jpg"
+                           Width="50"
+                           Height="50"
+                           HorizontalAlignment="Center"
+                           Margin="138,3,0,0"/>
+
+                    <Menu x:Name="mainMenu"
+                          HorizontalAlignment="Left"
+                          VerticalAlignment="Top">
+
+                        <MenuItem x:Name="assembleMenuItem"
+                                  Header="Собрать"/>
+                    </Menu>
+
+                </Grid>
+
+                <!-- Музыка -->
+                <TextBlock x:Name="musicLabel"
+                           Grid.Row="1"
+                           Text="Без музыки"
+                           FontFamily="Arial Narrow"
+                           FontSize="15.75"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+
+            </Grid>
+
+        </Border>
+
+        <!-- Левая панель -->
+        <Border x:Name="panel3"
+                Grid.Row="1"
+                Grid.Column="0"
+                Background="#696969"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"/>
+
+        <!-- Центральная область -->
+        <Border x:Name="panel1Container"
+                Grid.Row="1"
+                Grid.Column="1"
+                Background="Transparent"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch">
+
+            <Border x:Name="panel1"
+                    Background="#A0A0A0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"/>
+
+        </Border>
+
+        <!-- Правая панель -->
+        <Border x:Name="panel4"
+                Grid.Row="1"
+                Grid.Column="2"
+                Background="#696969"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"/>
+
+    </Grid>
+
+</Window>
