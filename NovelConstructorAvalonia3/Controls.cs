@@ -3,12 +3,14 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 using AvRichTextBox;
+using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Word = DocumentFormat.OpenXml.Wordprocessing;
 
 namespace NovelConstructorAvalonia3
 {
@@ -44,8 +46,34 @@ namespace NovelConstructorAvalonia3
 
             private void LoadDocxFile(string filePath)
             {
-                // DOCX реализуем через Word-import самого AvRichTextBox.
-                // Не через File.ReadAllText().
+                LoadWordDoc(filePath);
+
+                using WordprocessingDocument document =
+                    WordprocessingDocument.Open(filePath, false);
+
+                IEnumerable<Word.Paragraph> sourceParagraphs =
+                    document.MainDocumentPart?.Document.Body?
+                        .Elements<Word.Paragraph>()
+                    ?? Enumerable.Empty<Word.Paragraph>();
+
+                IEnumerable<AvRichTextBox.Paragraph> loadedParagraphs =
+                    FlowDocument.Blocks.OfType<AvRichTextBox.Paragraph>();
+
+                foreach ((Word.Paragraph source, AvRichTextBox.Paragraph loaded)
+                    in sourceParagraphs.Zip(loadedParagraphs))
+                {
+                    string alignment = source.ParagraphProperties?
+                        .Justification?.Val?.Value.ToString()
+                        .ToLowerInvariant() ?? "left";
+
+                    loaded.TextAlignment = alignment switch
+                    {
+                        "center" => TextAlignment.Center,
+                        "right" or "end" => TextAlignment.Right,
+                        "both" or "distribute" => TextAlignment.Justify,
+                        _ => TextAlignment.Left
+                    };
+                }
             }
 
             public async Task LoadFromFileAsync(string filePath)
