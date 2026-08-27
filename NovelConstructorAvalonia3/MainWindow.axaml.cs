@@ -119,11 +119,11 @@ public partial class MainWindow : Window
 
     private bool IsTextFile(string filePath)
     {
-        string extension = Path.GetExtension(filePath).ToLowerInvariant();
+        string extension =
+            Path.GetExtension(filePath).ToLowerInvariant();
 
         return extension == ".txt" ||
                extension == ".rtf" ||
-               extension == ".doc" ||
                extension == ".docx";
     }
 
@@ -241,14 +241,13 @@ public partial class MainWindow : Window
     }
 
     private async System.Threading.Tasks.Task CreateTextControl(
-        string filePath,
-        Point dropPosition)
+            string filePath,
+            Point dropPosition)
     {
+        ConstructorTextBox textBox =
+            new ConstructorTextBox();
 
-        string text = await File.ReadAllTextAsync(filePath);
-
-        ConstructorTextBox textBox = new ConstructorTextBox();
-        textBox.SetPlainText(text);
+        await textBox.LoadFromFileAsync(filePath);
 
         ConstructorControlContainer container =
             new ConstructorControlContainer(textBox);

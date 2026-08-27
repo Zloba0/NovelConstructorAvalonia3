@@ -80,7 +80,9 @@
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center">
 
-                <Canvas x:Name="controlCanvas"/>
+                <Canvas x:Name="controlCanvas"
+                    Background="Transparent"
+                    DragDrop.AllowDrop="True"/>
 
             </Border>
 

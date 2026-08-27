@@ -5,6 +5,7 @@ using Avalonia.Media;
 using AvRichTextBox;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,11 +25,63 @@ namespace NovelConstructorAvalonia3
         {
             public ConstructorTextBox()
             {
+                FlowDocument = new FlowDocument();
             }
 
             public void SetPlainText(string text)
             {
                 FlowDocument.Selection.Text = text;
+            }
+
+            private async Task LoadTextFileAsync(string filePath)
+            {
+                string text = await File.ReadAllTextAsync(
+                    filePath,
+                    Encoding.UTF8);
+
+                FlowDocument.Selection.Text = text;
+            }
+
+            private void LoadDocxFile(string filePath)
+            {
+                // DOCX реализуем через Word-import самого AvRichTextBox.
+                // Не через File.ReadAllText().
+            }
+
+            public async Task LoadFromFileAsync(string filePath)
+            {
+                string extension = Path.GetExtension(filePath).ToLowerInvariant();
+
+                switch (extension)
+                {
+                    case ".txt":
+                        await LoadTextFileAsync(filePath);
+                        break;
+
+                    case ".rtf":
+                        LoadRtfFile(filePath);
+                        break;
+
+                    case ".docx":
+                        LoadDocxFile(filePath);
+                        break;
+
+                    default:
+                        throw new NotSupportedException(
+                            $"Формат '{extension}' не поддерживается.");
+                }
+            }
+            private void LoadRtfFile(string filePath)
+            {
+                using FileStream stream = new FileStream(
+                    filePath,
+                    FileMode.Open,
+                    FileAccess.Read,
+                    FileShare.Read);
+
+                FlowDocument.Selection.Load(
+                    stream,
+                    ContentDataFormat.Rtf);
             }
         }
         public class ConstructorControlContainer : ContentControl
@@ -37,6 +90,7 @@ namespace NovelConstructorAvalonia3
             private Point dragStartPoint;
             private double startLeft;
             private double startTop;
+            private Point dragOffset;
 
             private readonly Border border;
 
@@ -89,16 +143,7 @@ namespace NovelConstructorAvalonia3
 
                 Select();
 
-                dragStartPoint = e.GetPosition(this);
-
-                startLeft = Canvas.GetLeft(this);
-                startTop = Canvas.GetTop(this);
-
-                if (double.IsNaN(startLeft))
-                    startLeft = 0;
-
-                if (double.IsNaN(startTop))
-                    startTop = 0;
+                dragOffset = e.GetPosition(this);
 
                 isDragging = true;
 
@@ -114,18 +159,19 @@ namespace NovelConstructorAvalonia3
                 if (!isDragging)
                     return;
 
-                if (Parent is not Visual parent)
+                if (Parent is not Canvas canvas)
                     return;
 
-                Point currentPosition = e.GetPosition(parent);
+                Point pointerPosition = e.GetPosition(canvas);
 
-                Point pressPosition = e.GetPosition(this);
+                double newLeft = pointerPosition.X - dragOffset.X;
+                double newTop = pointerPosition.Y - dragOffset.Y;
 
-                double deltaX = currentPosition.X - pressPosition.X;
-                double deltaY = currentPosition.Y - pressPosition.Y;
+                double maxLeft = Math.Max(0, canvas.Bounds.Width - Bounds.Width);
+                double maxTop = Math.Max(0, canvas.Bounds.Height - Bounds.Height);
 
-                double newLeft = startLeft + deltaX;
-                double newTop = startTop + deltaY;
+                newLeft = Math.Clamp(newLeft, 0, maxLeft);
+                newTop = Math.Clamp(newTop, 0, maxTop);
 
                 Canvas.SetLeft(this, newLeft);
                 Canvas.SetTop(this, newTop);
