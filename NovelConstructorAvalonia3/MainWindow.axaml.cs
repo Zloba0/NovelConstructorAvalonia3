@@ -23,6 +23,29 @@ public partial class MainWindow : Window
 
         iconImage.PointerPressed += IconImage_PointerPressed;
         textFileImage.PointerPressed += TextFileImage_PointerPressed;
+
+        AddHandler(
+            KeyDownEvent,
+            MainWindow_KeyDown,
+            Avalonia.Interactivity.RoutingStrategies.Tunnel);
+
+    }
+    private void MainWindow_KeyDown(
+    object? sender,
+    KeyEventArgs e)
+    {
+        if (e.Key != Key.Delete)
+            return;
+
+        Controls.ConstructorControlContainer? container =
+            Controls.ConstructorControlContainer.selectedContainer;
+
+        if (container == null)
+            return;
+
+        container.DeleteControl();
+
+        e.Handled = true;
     }
     private void ControlCanvas_DragOver(
         object? sender,

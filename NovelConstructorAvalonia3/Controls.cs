@@ -59,6 +59,11 @@ namespace NovelConstructorAvalonia3
                 CreateNewDocument();
                 RemoveDocumentPadding();
             }
+            public void ClearControl()
+            {
+                CreateNewDocument();
+                RemoveDocumentPadding();
+            }
 
             public IEnumerable<MenuItem> CreateContextMenuItems()
             {
@@ -142,6 +147,12 @@ namespace NovelConstructorAvalonia3
                 FlowDocument.PagePadding =
                     new Thickness(0);
             }
+        }
+        public interface IConstructorControl
+        {
+            void ClearControl();
+
+            IEnumerable<MenuItem> CreateContextMenuItems();
         }
         public interface IConstructorControl
         {
