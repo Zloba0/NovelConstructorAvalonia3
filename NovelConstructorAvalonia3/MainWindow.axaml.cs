@@ -14,9 +14,14 @@ namespace NovelConstructorAvalonia3;
 
 public partial class MainWindow : Window
 {
+    private readonly ModelsIn.Slide currentSlide =
+    new ModelsIn.Slide();
+
+    private ModelsIn.ControlLayer? activeLayer;
     public MainWindow()
     {
         InitializeComponent();
+        InitializeFirstLayer();
 
         DragDrop.AddDragOverHandler(controlCanvas, ControlCanvas_DragOver);
         DragDrop.AddDropHandler(controlCanvas, ControlCanvas_Drop);
@@ -30,9 +35,29 @@ public partial class MainWindow : Window
             Avalonia.Interactivity.RoutingStrategies.Tunnel);
 
     }
+    private void InitializeFirstLayer()
+    {
+        ModelsIn.ControlLayer layer =
+            new ModelsIn.ControlLayer();
+
+        currentSlide.Layers.Add(layer);
+        currentSlide.ActiveLayer = layer;
+
+        activeLayer = layer;
+    }
+    private void AddControlToActiveLayer(
+        ConstructorControlContainer container)
+    {
+        controlCanvas.Children.Add(container);
+
+        if (activeLayer == null)
+            return;
+
+        activeLayer.Controls.Add(container);
+    }
     private void MainWindow_KeyDown(
-    object? sender,
-    KeyEventArgs e)
+        object? sender,
+        KeyEventArgs e)
     {
         if (e.Key != Key.Delete)
             return;
@@ -178,7 +203,7 @@ public partial class MainWindow : Window
             container,
             controlPosition.Y);
 
-        controlCanvas.Children.Add(container);
+        AddControlToActiveLayer(container);
     }
 
     private void CreateEmptyTextControl(Point dropPosition)
@@ -206,7 +231,7 @@ public partial class MainWindow : Window
             container,
             controlPosition.Y);
 
-        controlCanvas.Children.Add(container);
+        AddControlToActiveLayer(container);
     }
 
     private async void IconImage_PointerPressed(
@@ -283,7 +308,7 @@ public partial class MainWindow : Window
             container,
             controlPosition.Y);
 
-        controlCanvas.Children.Add(container);
+        AddControlToActiveLayer(container);
     }
     private async System.Threading.Tasks.Task CreateTextControl(
             string filePath,
@@ -314,7 +339,7 @@ public partial class MainWindow : Window
             container,
             controlPosition.Y);
 
-        controlCanvas.Children.Add(container);
+        AddControlToActiveLayer(container);
     }
 
     protected override void OnSizeChanged(Avalonia.Controls.SizeChangedEventArgs e)
