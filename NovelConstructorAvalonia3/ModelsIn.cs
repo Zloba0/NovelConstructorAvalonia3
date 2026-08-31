@@ -12,6 +12,10 @@ namespace NovelConstructorAvalonia3
         public class ControlLayer
         {
             public List<Control> Controls { get; set; } = new List<Control>();
+
+            public string Name { get; set; } = "Слой";
+
+            public bool IsVisible { get; set; } = true;
         }
         public class Slide
         {
