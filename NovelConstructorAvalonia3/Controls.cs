@@ -59,11 +59,6 @@ namespace NovelConstructorAvalonia3
                 CreateNewDocument();
                 RemoveDocumentPadding();
             }
-            public void ClearControl()
-            {
-                CreateNewDocument();
-                RemoveDocumentPadding();
-            }
 
             public IEnumerable<MenuItem> CreateContextMenuItems()
             {
@@ -154,12 +149,7 @@ namespace NovelConstructorAvalonia3
 
             IEnumerable<MenuItem> CreateContextMenuItems();
         }
-        public interface IConstructorControl
-        {
-            void ClearControl();
 
-            IEnumerable<MenuItem> CreateContextMenuItems();
-        }
         public class ConstructorControlContainer : ContentControl
         {
             private const double ResizeHandleSize = 16;
