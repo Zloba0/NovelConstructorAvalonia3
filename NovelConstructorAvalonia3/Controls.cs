@@ -1,9 +1,11 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Styling;
+using Avalonia.VisualTree;
 using AvRichTextBox;
 using DocumentFormat.OpenXml.Packaging;
 using System;
@@ -32,25 +34,8 @@ namespace NovelConstructorAvalonia3
             {
                 Padding = new Thickness(0);
 
-                Styles.Add(new Style(
-                    selector => selector.OfType<EditableParagraph>())
-                {
-                    Setters =
-                    {
-                        new Setter(
-                            TextBlock.TextWrappingProperty,
-                            TextWrapping.NoWrap),
-                        new Setter(
-                            TextBlock.TextAlignmentProperty,
-                            new Binding("ThisPar.TextAlignment")
-                            {
-                                RelativeSource = new RelativeSource(
-                                    RelativeSourceMode.Self)
-                            })
-                    }
-                });
-
                 FlowDocument = new FlowDocument();
+
                 RemoveDocumentPadding();
             }
 
@@ -59,51 +44,11 @@ namespace NovelConstructorAvalonia3
                 FlowDocument.Selection.Text = text;
             }
 
-            private async Task LoadTextFileAsync(string filePath)
-            {
-                string text = await File.ReadAllTextAsync(
-                    filePath,
-                    Encoding.UTF8);
-
-                FlowDocument.Selection.Text = text;
-            }
-
-            private void LoadDocxFile(string filePath)
-            {
-                LoadWordDoc(filePath);
-                RemoveDocumentPadding();
-
-                using WordprocessingDocument document =
-                    WordprocessingDocument.Open(filePath, false);
-
-                IEnumerable<Word.Paragraph> sourceParagraphs =
-                    document.MainDocumentPart?
-                        .Document?
-                        .Body?
-                        .Elements<Word.Paragraph>()
-                    ?? Enumerable.Empty<Word.Paragraph>();
-
-                IEnumerable<AvRichTextBox.Paragraph> loadedParagraphs =
-                    FlowDocument.Blocks
-                        .OfType<AvRichTextBox.Paragraph>();
-
-                foreach ((Word.Paragraph source,
-                          AvRichTextBox.Paragraph loaded)
-                         in sourceParagraphs.Zip(loadedParagraphs))
-                {
-                    loaded.TextAlignment =
-                        GetParagraphAlignment(document, source);
-                }
-            }
-
-            private void RemoveDocumentPadding()
-            {
-                FlowDocument.PagePadding = new Thickness(0);
-            }
-
             public async Task LoadFromFileAsync(string filePath)
             {
-                string extension = Path.GetExtension(filePath).ToLowerInvariant();
+                string extension =
+                    Path.GetExtension(filePath)
+                        .ToLowerInvariant();
 
                 switch (extension)
                 {
@@ -124,74 +69,52 @@ namespace NovelConstructorAvalonia3
                             $"Формат '{extension}' не поддерживается.");
                 }
             }
-            private void LoadRtfFile(string filePath)
+
+            private async Task LoadTextFileAsync(
+                string filePath)
             {
-                using FileStream stream = new FileStream(
-                    filePath,
-                    FileMode.Open,
-                    FileAccess.Read,
-                    FileShare.Read);
+                string text =
+                    await File.ReadAllTextAsync(
+                        filePath,
+                        Encoding.UTF8);
+
+                FlowDocument.Selection.Text = text;
+            }
+
+            private void LoadRtfFile(
+                string filePath)
+            {
+                using FileStream stream =
+                    new FileStream(
+                        filePath,
+                        FileMode.Open,
+                        FileAccess.Read,
+                        FileShare.Read);
 
                 FlowDocument.Selection.Load(
                     stream,
                     ContentDataFormat.Rtf);
             }
-            private TextAlignment GetParagraphAlignment(
-    WordprocessingDocument document,
-    Word.Paragraph paragraph)
+
+            private void LoadDocxFile(string filePath)
             {
-                Word.Justification? directJustification =
-                    paragraph.ParagraphProperties?.Justification;
+                LoadWordDoc(filePath);
 
-                if (directJustification?.Val?.Value != null)
+                FlowDocument.PagePadding =
+                    new Thickness(0);
+
+                foreach (AvRichTextBox.Block block
+                    in FlowDocument.Blocks)
                 {
-                    return ConvertAlignment(
-                        directJustification.Val.Value.ToString());
+                    block.Margin =
+                        new Thickness(0);
                 }
-
-                string? styleId =
-                    paragraph.ParagraphProperties?
-                        .ParagraphStyleId?
-                        .Val?
-                        .Value;
-
-                if (styleId != null)
-                {
-                    Word.Style? style =
-                        document.MainDocumentPart?
-                            .StyleDefinitionsPart?
-                            .Styles?
-                            .Elements<Word.Style>()
-                            .FirstOrDefault(
-                                currentStyle =>
-                                    currentStyle.StyleId?.Value == styleId);
-
-                    Word.Justification? styleJustification =
-                        style?.StyleParagraphProperties?.Justification;
-
-                    if (styleJustification?.Val?.Value != null)
-                    {
-                        return ConvertAlignment(
-                            styleJustification.Val.Value.ToString());
-                    }
-                }
-
-                return TextAlignment.Left;
             }
-            private TextAlignment ConvertAlignment(string alignment)
+
+            private void RemoveDocumentPadding()
             {
-                return alignment.ToLowerInvariant() switch
-                {
-                    "center" => TextAlignment.Center,
-
-                    "right" => TextAlignment.Right,
-                    "end" => TextAlignment.Right,
-
-                    "both" => TextAlignment.Justify,
-                    "distribute" => TextAlignment.Justify,
-
-                    _ => TextAlignment.Left
-                };
+                FlowDocument.PagePadding =
+                    new Thickness(0);
             }
         }
         public class ConstructorControlContainer : ContentControl
