@@ -222,30 +222,9 @@ namespace NovelConstructorAvalonia3
 
                 PointerPressed += OnContainerPointerPressed;
 
-                AddHandler(
-                    KeyDownEvent,
-                    MainWindow_KeyDown,
-                    Avalonia.Interactivity.RoutingStrategies.Tunnel);
                 Select();
             }
 
-            private void MainWindow_KeyDown(
-                object? sender,
-                KeyEventArgs e)
-            {
-                if (e.Key != Key.Delete)
-                    return;
-
-                Controls.ConstructorControlContainer? container =
-                    Controls.ConstructorControlContainer.selectedContainer;
-
-                if (container == null)
-                    return;
-
-                container.DeleteControl();
-
-                e.Handled = true;
-            }
 
             private ContextMenu CreateContextMenu()
             {
