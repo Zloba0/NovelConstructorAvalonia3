@@ -202,6 +202,7 @@ namespace NovelConstructorAvalonia3
 
                 Grid overlay = new Grid();
 
+                overlay.Children.Add(background);
                 overlay.Children.Add(innerControl);
                 overlay.Children.Add(border);
                 overlay.Children.Add(resizeHandle);
