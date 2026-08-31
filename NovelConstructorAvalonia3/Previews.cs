@@ -31,6 +31,10 @@ namespace NovelConstructorAvalonia3
                     return layer;
                 }
             }
+            public void SetPreview(IImage image)
+            {
+                previewImage.Source = image;
+            }
 
             public LayerPreview(
                 ModelsIn.ControlLayer layer)

@@ -5,10 +5,12 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using System;
 using System.IO;
 using System.Linq;
 using static NovelConstructorAvalonia3.Controls;
+using static NovelConstructorAvalonia3.Previews;
 
 namespace NovelConstructorAvalonia3;
 

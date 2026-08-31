@@ -113,9 +113,9 @@
         <Border x:Name="panel4"
                 Grid.Row="1"
                 Grid.Column="2"
-                Width="125"
-                MinWidth="125"
-                MaxWidth="125"
+                Width="170"
+                MinWidth="170"
+                MaxWidth="170"
                 Background="#696969"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch">
