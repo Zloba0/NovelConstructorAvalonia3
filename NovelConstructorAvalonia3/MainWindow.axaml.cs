@@ -1,13 +1,14 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Platform.Storage;
-using System.Linq;
-using static NovelConstructorAvalonia3.Controls;
-using Avalonia;
 using System;
 using System.IO;
+using System.Linq;
+using static NovelConstructorAvalonia3.Controls;
 
 namespace NovelConstructorAvalonia3;
 
@@ -135,16 +136,24 @@ public partial class MainWindow : Window
         ConstructorControlContainer container =
             new ConstructorControlContainer(pictureBox);
 
+        container.SetBackground(Brushes.LightBlue);
+
         container.Width = 200;
         container.Height = 150;
 
+        Point controlPosition =
+            GetControlPosition(
+                dropPosition,
+                container.Width,
+                container.Height);
+
         Canvas.SetLeft(
             container,
-            dropPosition.X - container.Width / 2);
+            controlPosition.X);
 
         Canvas.SetTop(
             container,
-            dropPosition.Y - container.Height / 2);
+            controlPosition.Y);
 
         controlCanvas.Children.Add(container);
     }
@@ -160,13 +169,19 @@ public partial class MainWindow : Window
         container.Width = 300;
         container.Height = 200;
 
+        Point controlPosition =
+            GetControlPosition(
+                dropPosition,
+                container.Width,
+                container.Height);
+
         Canvas.SetLeft(
             container,
-            dropPosition.X - container.Width / 2);
+            controlPosition.X);
 
         Canvas.SetTop(
             container,
-            dropPosition.Y - container.Height / 2);
+            controlPosition.Y);
 
         controlCanvas.Children.Add(container);
     }
@@ -214,8 +229,8 @@ public partial class MainWindow : Window
     }
 
     private void CreateImageControl(
-        string filePath,
-        Point dropPosition)
+    string filePath,
+    Point dropPosition)
     {
         ConstructorPictureBox pictureBox = new ConstructorPictureBox();
 
@@ -226,20 +241,27 @@ public partial class MainWindow : Window
         ConstructorControlContainer container =
             new ConstructorControlContainer(pictureBox);
 
+        container.SetBackground(Brushes.LightBlue);
+
         container.Width = 200;
         container.Height = 150;
 
+        Point controlPosition =
+             GetControlPosition(
+                 dropPosition,
+                 container.Width,
+                 container.Height);
+
         Canvas.SetLeft(
             container,
-            dropPosition.X - container.Width / 2);
+            controlPosition.X);
 
         Canvas.SetTop(
             container,
-            dropPosition.Y - container.Height / 2);
+            controlPosition.Y);
 
         controlCanvas.Children.Add(container);
     }
-
     private async System.Threading.Tasks.Task CreateTextControl(
             string filePath,
             Point dropPosition)
@@ -255,13 +277,19 @@ public partial class MainWindow : Window
         container.Width = 300;
         container.Height = 200;
 
+        Point controlPosition =
+            GetControlPosition(
+                dropPosition,
+                container.Width,
+                container.Height);
+
         Canvas.SetLeft(
             container,
-            dropPosition.X - container.Width / 2);
+            controlPosition.X);
 
         Canvas.SetTop(
             container,
-            dropPosition.Y - container.Height / 2);
+            controlPosition.Y);
 
         controlCanvas.Children.Add(container);
     }
@@ -310,5 +338,38 @@ public partial class MainWindow : Window
 
         panel1.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center;
         panel1.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center;
+    }
+    private Point GetControlPosition(
+        Point dropPosition,
+        double controlWidth,
+        double controlHeight)
+    {
+        double left =
+            dropPosition.X - controlWidth / 2;
+
+        double top =
+            dropPosition.Y - controlHeight / 2;
+
+        double maxLeft =
+            Math.Max(
+                0,
+                controlCanvas.Bounds.Width - controlWidth);
+
+        double maxTop =
+            Math.Max(
+                0,
+                controlCanvas.Bounds.Height - controlHeight);
+
+        left = Math.Clamp(
+            left,
+            0,
+            maxLeft);
+
+        top = Math.Clamp(
+            top,
+            0,
+            maxTop);
+
+        return new Point(left, top);
     }
 }

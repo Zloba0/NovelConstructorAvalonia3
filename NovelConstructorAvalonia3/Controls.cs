@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Documents;
 using Avalonia.Controls.Presenters;
 using Avalonia.Data;
 using Avalonia.Input;
@@ -16,19 +17,32 @@ using System.Text;
 using System.Threading.Tasks;
 using ShapePath = Avalonia.Controls.Shapes.Path;
 using Word = DocumentFormat.OpenXml.Wordprocessing;
+using Avalonia.Threading;
+
+using Avalonia.Controls.Shapes;
 
 namespace NovelConstructorAvalonia3
 {
     internal class Controls
     {
-        public class ConstructorPictureBox : Image
+        public class ConstructorPictureBox : Image, IConstructorControl
         {
             public ConstructorPictureBox()
             {
                 Stretch = Stretch.Fill;
             }
+
+            public void ClearControl()
+            {
+                Source = null;
+            }
+
+            public IEnumerable<MenuItem> CreateContextMenuItems()
+            {
+                return new List<MenuItem>();
+            }
         }
-        public class ConstructorTextBox : RichTextBox
+        public class ConstructorTextBox : RichTextBox, IConstructorControl
         {
             public ConstructorTextBox()
             {
@@ -40,6 +54,16 @@ namespace NovelConstructorAvalonia3
 
                 RemoveDocumentPadding();
             }
+            public void ClearControl()
+            {
+                CreateNewDocument();
+                RemoveDocumentPadding();
+            }
+
+            public IEnumerable<MenuItem> CreateContextMenuItems()
+            {
+                return new List<MenuItem>();
+            }
 
             public void SetPlainText(string text)
             {
@@ -49,7 +73,7 @@ namespace NovelConstructorAvalonia3
             public async Task LoadFromFileAsync(string filePath)
             {
                 string extension =
-                    Path.GetExtension(filePath)
+                    System.IO.Path.GetExtension(filePath)
                         .ToLowerInvariant();
 
                 switch (extension)
@@ -119,6 +143,12 @@ namespace NovelConstructorAvalonia3
                     new Thickness(0);
             }
         }
+        public interface IConstructorControl
+        {
+            void ClearControl();
+
+            IEnumerable<MenuItem> CreateContextMenuItems();
+        }
         public class ConstructorControlContainer : ContentControl
         {
             private const double ResizeHandleSize = 16;
@@ -130,6 +160,7 @@ namespace NovelConstructorAvalonia3
             private Point resizeStartPoint;
             private double resizeStartWidth;
             private double resizeStartHeight;
+            private readonly Border background;
 
             private readonly Border border;
             private readonly ShapePath resizeHandle;
@@ -137,6 +168,7 @@ namespace NovelConstructorAvalonia3
             public Control InnerControl { get; }
 
             public bool IsSelected { get; private set; }
+            private static ConstructorControlContainer? selectedContainer;
 
             public ConstructorControlContainer(Control innerControl)
             {
@@ -162,6 +194,10 @@ namespace NovelConstructorAvalonia3
                     StrokeThickness = 1,
                     Cursor = new Cursor(StandardCursorType.BottomRightCorner)
                 };
+                background = new Border
+                {
+                    Background = Brushes.Transparent
+                };
 
                 Grid overlay = new Grid();
 
@@ -170,12 +206,129 @@ namespace NovelConstructorAvalonia3
                 overlay.Children.Add(resizeHandle);
 
                 Content = overlay;
+                ContextMenu = CreateContextMenu();
 
                 resizeHandle.PointerPressed += OnResizePointerPressed;
                 resizeHandle.PointerMoved += OnResizePointerMoved;
                 resizeHandle.PointerReleased += OnResizePointerReleased;
                 resizeHandle.PointerCaptureLost += OnResizePointerCaptureLost;
 
+
+                border.PointerPressed += OnPointerPressed;
+                border.PointerMoved += OnPointerMoved;
+                border.PointerReleased += OnPointerReleased;
+                border.PointerCaptureLost += OnPointerCaptureLost;
+
+                PointerPressed += OnContainerPointerPressed;
+
+                AddHandler(
+                    KeyDownEvent,
+                    MainWindow_KeyDown,
+                    Avalonia.Interactivity.RoutingStrategies.Tunnel);
+                Select();
+            }
+
+            private void MainWindow_KeyDown(
+                object? sender,
+                KeyEventArgs e)
+            {
+                if (e.Key != Key.Delete)
+                    return;
+
+                Controls.ConstructorControlContainer? container =
+                    Controls.ConstructorControlContainer.selectedContainer;
+
+                if (container == null)
+                    return;
+
+                container.DeleteControl();
+
+                e.Handled = true;
+            }
+
+            private ContextMenu CreateContextMenu()
+            {
+                ContextMenu contextMenu = new ContextMenu();
+
+                List<Control> items = new List<Control>();
+
+                if (InnerControl is IConstructorControl constructorControl)
+                {
+                    foreach (MenuItem uniqueItem in constructorControl.CreateContextMenuItems())
+                    {
+                        items.Add(uniqueItem);
+                    }
+
+                    if (items.Count > 0)
+                    {
+                        items.Add(new Separator());
+                    }
+                }
+
+                MenuItem clearItem = new MenuItem
+                {
+                    Header = "Очистить"
+                };
+
+                clearItem.Click += OnClearMenuItemClick;
+
+                MenuItem deleteItem = new MenuItem
+                {
+                    Header = "Удалить"
+                };
+
+                deleteItem.Click += OnDeleteMenuItemClick;
+
+                items.Add(clearItem);
+                items.Add(deleteItem);
+
+                contextMenu.ItemsSource = items;
+
+                return contextMenu;
+            }
+
+            private void OnClearMenuItemClick(
+                object? sender,
+                Avalonia.Interactivity.RoutedEventArgs e)
+            {
+                if (InnerControl is IConstructorControl constructorControl)
+                {
+                    constructorControl.ClearControl();
+                }
+            }
+
+            private void OnDeleteMenuItemClick(
+                object? sender,
+                Avalonia.Interactivity.RoutedEventArgs e)
+            {
+                DeleteControl();
+            }
+
+            private void DeleteControl()
+            {
+                if (ReferenceEquals(selectedContainer, this))
+                {
+                    selectedContainer = null;
+                }
+
+                if (Parent is Panel parentPanel)
+                {
+                    parentPanel.Children.Remove(this);
+                }
+            }
+            public void SetBackground(IBrush brush)
+            {
+                background.Background = brush;
+            }
+            private void OnContainerPointerPressed(
+                object? sender,
+                PointerPressedEventArgs e)
+            {
+                PointerPoint pointerPoint =
+                    e.GetCurrentPoint(this);
+
+                if (!pointerPoint.Properties.IsLeftButtonPressed)
+                    return;
 
                 border.PointerPressed += OnPointerPressed;
                 border.PointerMoved += OnPointerMoved;
@@ -204,14 +357,40 @@ namespace NovelConstructorAvalonia3
             }
             public void Select()
             {
-                IsSelected = true;
-                border.BorderBrush = Brushes.Blue;
-            }
+                if (ReferenceEquals(selectedContainer, this))
+                    return;
 
+                if (selectedContainer != null)
+                    selectedContainer.SetSelectedState(false);
+
+                selectedContainer = this;
+
+                SetSelectedState(true);
+            }
+            private void SetSelectedState(bool selected)
+            {
+                IsSelected = selected;
+
+                if (selected)
+                {
+                    border.BorderBrush = Brushes.Red;
+
+                    if (InnerControl is ConstructorTextBox textBox)
+                    {
+                        textBox.Focus();
+                    }
+                }
+                else
+                {
+                    border.BorderBrush = Brushes.Blue;
+                }
+            }
             public void Deselect()
             {
-                IsSelected = false;
-                border.BorderBrush = Brushes.Transparent;
+                if (ReferenceEquals(selectedContainer, this))
+                    selectedContainer = null;
+
+                SetSelectedState(false);
             }
             private void OnPointerPressed(
                 object? sender,
