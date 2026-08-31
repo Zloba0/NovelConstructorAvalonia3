@@ -179,7 +179,7 @@ namespace NovelConstructorAvalonia3
             public Control InnerControl { get; }
 
             public bool IsSelected { get; private set; }
-            private static ConstructorControlContainer? selectedContainer;
+            public static ConstructorControlContainer? selectedContainer { get; private set; }
 
             public ConstructorControlContainer(Control innerControl)
             {
@@ -315,7 +315,7 @@ namespace NovelConstructorAvalonia3
                 DeleteControl();
             }
 
-            private void DeleteControl()
+            public void DeleteControl()
             {
                 if (ReferenceEquals(selectedContainer, this))
                 {
