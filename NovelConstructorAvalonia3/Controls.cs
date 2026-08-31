@@ -32,6 +32,8 @@ namespace NovelConstructorAvalonia3
         {
             public ConstructorTextBox()
             {
+                Cursor = new Cursor(StandardCursorType.Ibeam);
+
                 Padding = new Thickness(0);
 
                 FlowDocument = new FlowDocument();
@@ -142,10 +144,10 @@ namespace NovelConstructorAvalonia3
 
                 border = new Border
                 {
-                    BorderThickness = new Thickness(1),
+                    BorderThickness = new Thickness(3),
                     BorderBrush = Brushes.Transparent,
                     Background = Brushes.Transparent,
-                    Child = innerControl
+                    Cursor = new Cursor(StandardCursorType.SizeAll)
                 };
 
                 resizeHandle = new ShapePath
@@ -162,6 +164,8 @@ namespace NovelConstructorAvalonia3
                 };
 
                 Grid overlay = new Grid();
+
+                overlay.Children.Add(innerControl);
                 overlay.Children.Add(border);
                 overlay.Children.Add(resizeHandle);
 
@@ -172,14 +176,32 @@ namespace NovelConstructorAvalonia3
                 resizeHandle.PointerReleased += OnResizePointerReleased;
                 resizeHandle.PointerCaptureLost += OnResizePointerCaptureLost;
 
-                PointerPressed += OnPointerPressed;
-                PointerMoved += OnPointerMoved;
-                PointerReleased += OnPointerReleased;
-                PointerCaptureLost += OnPointerCaptureLost;
+
+                border.PointerPressed += OnPointerPressed;
+                border.PointerMoved += OnPointerMoved;
+                border.PointerReleased += OnPointerReleased;
+                border.PointerCaptureLost += OnPointerCaptureLost;
 
                 Select();
             }
+            private void OnMoveHandlePointerPressed(
+                object? sender,
+                PointerPressedEventArgs e)
+            {
+                PointerPoint pointerPoint =
+                    e.GetCurrentPoint(this);
 
+                if (!pointerPoint.Properties.IsLeftButtonPressed)
+                    return;
+
+                Select();
+
+                dragOffset = e.GetPosition(this);
+
+                isDragging = true;
+
+                e.Handled = true;
+            }
             public void Select()
             {
                 IsSelected = true;
@@ -191,12 +213,15 @@ namespace NovelConstructorAvalonia3
                 IsSelected = false;
                 border.BorderBrush = Brushes.Transparent;
             }
-
             private void OnPointerPressed(
                 object? sender,
                 PointerPressedEventArgs e)
             {
-                PointerPoint pointerPoint = e.GetCurrentPoint(this);
+                if (!ReferenceEquals(e.Source, border))
+                    return;
+
+                PointerPoint pointerPoint =
+                    e.GetCurrentPoint(this);
 
                 if (!pointerPoint.Properties.IsLeftButtonPressed)
                     return;
@@ -207,7 +232,7 @@ namespace NovelConstructorAvalonia3
 
                 isDragging = true;
 
-                e.Pointer.Capture(this);
+                e.Pointer.Capture(border);
 
                 e.Handled = true;
             }
@@ -222,16 +247,30 @@ namespace NovelConstructorAvalonia3
                 if (Parent is not Canvas canvas)
                     return;
 
-                Point pointerPosition = e.GetPosition(canvas);
+                Point pointerPosition =
+                    e.GetPosition(canvas);
 
-                double newLeft = pointerPosition.X - dragOffset.X;
-                double newTop = pointerPosition.Y - dragOffset.Y;
+                double newLeft =
+                    pointerPosition.X - dragOffset.X;
 
-                double maxLeft = Math.Max(0, canvas.Bounds.Width - Bounds.Width);
-                double maxTop = Math.Max(0, canvas.Bounds.Height - Bounds.Height);
+                double newTop =
+                    pointerPosition.Y - dragOffset.Y;
 
-                newLeft = Math.Clamp(newLeft, 0, maxLeft);
-                newTop = Math.Clamp(newTop, 0, maxTop);
+                double maxLeft =
+                    Math.Max(
+                        0,
+                        canvas.Bounds.Width - Bounds.Width);
+
+                double maxTop =
+                    Math.Max(
+                        0,
+                        canvas.Bounds.Height - Bounds.Height);
+
+                newLeft =
+                    Math.Clamp(newLeft, 0, maxLeft);
+
+                newTop =
+                    Math.Clamp(newTop, 0, maxTop);
 
                 Canvas.SetLeft(this, newLeft);
                 Canvas.SetTop(this, newTop);
